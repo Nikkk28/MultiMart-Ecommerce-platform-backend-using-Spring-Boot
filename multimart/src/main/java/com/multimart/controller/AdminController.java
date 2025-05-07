@@ -1,0 +1,50 @@
+package com.multimart.controller;
+
+import com.multimart.dto.common.ApiResponse;
+import com.multimart.dto.vendor.VendorDto;
+import com.multimart.model.Vendor;
+import com.multimart.service.AdminService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/admin")
+@PreAuthorize("hasRole('ADMIN')")
+@RequiredArgsConstructor
+public class AdminController {
+
+    private final AdminService adminService;
+
+    @GetMapping("/vendors")
+    public ResponseEntity<Page<VendorDto>> getAllVendors(
+            @RequestParam(required = false) Vendor.ApprovalStatus status,
+            @PageableDefault(size = 10) Pageable pageable) {
+        
+        return ResponseEntity.ok(adminService.getAllVendors(status, pageable));
+    }
+
+    @GetMapping("/vendors/{vendorId}")
+    public ResponseEntity<VendorDto> getVendorById(@PathVariable Long vendorId) {
+        return ResponseEntity.ok(adminService.getVendorById(vendorId));
+    }
+
+    @PostMapping("/vendors/{vendorId}/approve")
+    public ResponseEntity<ApiResponse> approveVendor(@PathVariable Long vendorId) {
+        adminService.approveVendor(vendorId);
+        return ResponseEntity.ok(new ApiResponse(true, "Vendor approved successfully"));
+    }
+
+    @PostMapping("/vendors/{vendorId}/reject")
+    public ResponseEntity<ApiResponse> rejectVendor(
+            @PathVariable Long vendorId,
+            @RequestParam String reason) {
+        
+        adminService.rejectVendor(vendorId, reason);
+        return ResponseEntity.ok(new ApiResponse(true, "Vendor rejected successfully"));
+    }
+}
