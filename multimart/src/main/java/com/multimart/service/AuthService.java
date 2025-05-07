@@ -7,7 +7,9 @@ import com.multimart.dto.user.UserDto;
 import com.multimart.exception.ResourceNotFoundException;
 import com.multimart.model.Role;
 import com.multimart.model.User;
+import com.multimart.model.Vendor;
 import com.multimart.repository.UserRepository;
+import com.multimart.repository.VendorRepository;
 import com.multimart.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,6 +26,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final EmailService emailService;
+    private final VendorRepository vendorRepository;
 
     public void register(RegisterRequest request) {
         // Check if username or email already exists
@@ -36,21 +39,58 @@ public class AuthService {
         }
         
         // Create new user
-        User user = User.builder()
-                .username(request.getUsername())
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .email(request.getEmail())
-                .phoneNumber(request.getPhoneNumber())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .role(Role.CUSTOMER)
-                .build();
-        
-        userRepository.save(user);
-        
-        // Send verification email
-        String token = jwtService.generateToken(user);
-        emailService.sendVerificationEmail(user.getEmail(), token);
+        if(request.getRole()==Role.CUSTOMER) {
+            User user = User.builder()
+                    .username(request.getUsername())
+                    .firstName(request.getFirstName())
+                    .lastName(request.getLastName())
+                    .email(request.getEmail())
+                    .phoneNumber(request.getPhoneNumber())
+                    .password(passwordEncoder.encode(request.getPassword()))
+                    .role(Role.CUSTOMER)
+                    .address(request.getAddress())
+                    .accountNonExpired(true)
+                    .accountNonLocked(true)
+                    .credentialsNonExpired(true)
+                    .build();
+
+            userRepository.save(user);
+
+
+            // Send verification email
+            String token = jwtService.generateToken(user);
+//        emailService.sendVerificationEmail(user.getEmail(), token);
+        }
+        if (request.getRole()==Role.VENDOR) {
+            User user = User.builder()
+                    .username(request.getUsername())
+                    .firstName(request.getFirstName())
+                    .lastName(request.getLastName())
+                    .email(request.getEmail())
+                    .phoneNumber(request.getPhoneNumber())
+                    .password(passwordEncoder.encode(request.getPassword()))
+                    .role(Role.VENDOR)
+                    .address(request.getAddress())
+                    .accountNonExpired(true)
+                    .accountNonLocked(true)
+                    .credentialsNonExpired(true)
+                    .build();
+            Vendor vendor= Vendor.builder()
+                    .storeName(request.getStoreName())
+                    .storeAddress(request.getStoreAddress())
+                    .storeDescription(request.getStoreDescription())
+                    .logo(request.getLogo())
+                    .specialty(request.getSpecialty())
+                    .rejectionReason(request.getRejectionReason())
+                    .rating(request.getRating())
+                    .productCount(request.getProductCount())
+                    .joinedDate(request.getJoinedDate())
+                    .user(user)
+                    .build();
+
+            userRepository.save(user);
+            vendorRepository.save(vendor);
+        }
     }
 
     public AuthResponse login(LoginRequest request) {

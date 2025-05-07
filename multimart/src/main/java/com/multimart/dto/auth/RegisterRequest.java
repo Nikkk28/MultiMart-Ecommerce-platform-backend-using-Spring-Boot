@@ -1,5 +1,9 @@
 package com.multimart.dto.auth;
 
+import com.multimart.dto.common.AddressDto;
+import com.multimart.model.Address;
+import com.multimart.model.Role;
+import com.multimart.model.Vendor;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -8,6 +12,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -36,4 +42,17 @@ public class RegisterRequest {
     @NotBlank(message = "Phone number is required")
     @Pattern(regexp = "^\\+?[0-9\\s-]{10,15}$", message = "Phone number should be valid")
     private String phoneNumber;
+    private Address address;
+    private Role role;
+    private Address storeAddress;
+    private String storeName;
+    private String storeDescription;
+    private String logo;
+    private String specialty;
+    private String rejectionReason;
+    private Double rating;
+    private Integer productCount;
+    private LocalDateTime joinedDate= LocalDateTime.now();
+    private Vendor.ApprovalStatus approvalStatus;
+
 }

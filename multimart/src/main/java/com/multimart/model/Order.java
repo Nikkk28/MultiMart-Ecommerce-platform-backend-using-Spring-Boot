@@ -37,24 +37,25 @@ public class Order {
 
     @Embedded
     @AttributeOverrides({
-        @AttributeOverride(name = "street", column = @Column(name = "shipping_street")),
-        @AttributeOverride(name = "city", column = @Column(name = "shipping_city")),
-        @AttributeOverride(name = "state", column = @Column(name = "shipping_state")),
-        @AttributeOverride(name = "zipCode", column = @Column(name = "shipping_zip_code")),
-        @AttributeOverride(name = "country", column = @Column(name = "shipping_country"))
+            @AttributeOverride(name = "street", column = @Column(name = "shipping_street")),
+            @AttributeOverride(name = "city", column = @Column(name = "shipping_city")),
+            @AttributeOverride(name = "state", column = @Column(name = "shipping_state")),
+            @AttributeOverride(name = "zipCode", column = @Column(name = "shipping_zip_code")),
+            @AttributeOverride(name = "country", column = @Column(name = "shipping_country")),
+            @AttributeOverride(name = "isDefault", column = @Column(name = "shipping_is_default"))
     })
     private Address shippingAddress;
 
     @Embedded
     @AttributeOverrides({
-        @AttributeOverride(name = "street", column = @Column(name = "billing_street")),
-        @AttributeOverride(name = "city", column = @Column(name = "billing_city")),
-        @AttributeOverride(name = "state", column = @Column(name = "billing_state")),
-        @AttributeOverride(name = "zipCode", column = @Column(name = "billing_zip_code")),
-        @AttributeOverride(name = "country", column = @Column(name = "billing_country"))
+            @AttributeOverride(name = "street", column = @Column(name = "billing_street")),
+            @AttributeOverride(name = "city", column = @Column(name = "billing_city")),
+            @AttributeOverride(name = "state", column = @Column(name = "billing_state")),
+            @AttributeOverride(name = "zipCode", column = @Column(name = "billing_zip_code")),
+            @AttributeOverride(name = "country", column = @Column(name = "billing_country")),
+            @AttributeOverride(name = "isDefault", column = @Column(name = "billing_is_default"))
     })
     private Address billingAddress;
-
     private String paymentMethod;
 
     @Enumerated(EnumType.STRING)
