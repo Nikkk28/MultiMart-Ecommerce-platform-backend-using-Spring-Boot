@@ -1,5 +1,6 @@
 package com.multimart.controller;
 
+import com.multimart.dto.category.CategoryDto;
 import com.multimart.dto.common.ApiResponse;
 import com.multimart.dto.vendor.VendorDto;
 import com.multimart.model.Vendor;
@@ -11,6 +12,8 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/admin")
@@ -24,7 +27,7 @@ public class AdminController {
     public ResponseEntity<Page<VendorDto>> getAllVendors(
             @RequestParam(required = false) Vendor.ApprovalStatus status,
             @PageableDefault(size = 10) Pageable pageable) {
-        
+
         return ResponseEntity.ok(adminService.getAllVendors(status, pageable));
     }
 
@@ -43,8 +46,38 @@ public class AdminController {
     public ResponseEntity<ApiResponse> rejectVendor(
             @PathVariable Long vendorId,
             @RequestParam String reason) {
-        
+
         adminService.rejectVendor(vendorId, reason);
         return ResponseEntity.ok(new ApiResponse(true, "Vendor rejected successfully"));
+    }
+
+    // Category Management Endpoints
+
+    @GetMapping("/categories")
+    public ResponseEntity<List<CategoryDto>> getAllCategories() {
+        return ResponseEntity.ok(adminService.getAllCategories());
+    }
+
+    @GetMapping("/categories/{id}")
+    public ResponseEntity<CategoryDto> getCategoryById(@PathVariable Long id) {
+        return ResponseEntity.ok(adminService.getCategoryById(id));
+    }
+
+    @PostMapping("/categories")
+    public ResponseEntity<CategoryDto> createCategory(@RequestBody CategoryDto categoryDto) {
+        return ResponseEntity.ok(adminService.createCategory(categoryDto));
+    }
+
+    @PutMapping("/categories/{id}")
+    public ResponseEntity<CategoryDto> updateCategory(
+            @PathVariable Long id,
+            @RequestBody CategoryDto categoryDto) {
+        return ResponseEntity.ok(adminService.updateCategory(id, categoryDto));
+    }
+
+    @DeleteMapping("/categories/{id}")
+    public ResponseEntity<ApiResponse> deleteCategory(@PathVariable Long id) {
+        adminService.deleteCategory(id);
+        return ResponseEntity.ok(new ApiResponse(true, "Category deleted successfully"));
     }
 }
