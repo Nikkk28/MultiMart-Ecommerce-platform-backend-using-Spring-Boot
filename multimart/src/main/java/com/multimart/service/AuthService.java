@@ -48,6 +48,7 @@ public class AuthService {
                     .phoneNumber(request.getPhoneNumber())
                     .password(passwordEncoder.encode(request.getPassword()))
                     .role(Role.CUSTOMER)
+                    .enabled(true)
                     .address(request.getAddress())
                     .accountNonExpired(true)
                     .accountNonLocked(true)
@@ -71,6 +72,7 @@ public class AuthService {
                     .password(passwordEncoder.encode(request.getPassword()))
                     .role(Role.VENDOR)
                     .address(request.getAddress())
+                    .enabled(true)
                     .accountNonExpired(true)
                     .accountNonLocked(true)
                     .credentialsNonExpired(true)
@@ -86,10 +88,29 @@ public class AuthService {
                     .productCount(request.getProductCount())
                     .joinedDate(request.getJoinedDate())
                     .user(user)
+                    .approvalStatus(Vendor.ApprovalStatus.PENDING)
                     .build();
 
             userRepository.save(user);
             vendorRepository.save(vendor);
+        }
+        if (request.getRole()==Role.ADMIN) {
+            User user = User.builder()
+                    .username(request.getUsername())
+                    .firstName(request.getFirstName())
+                    .lastName(request.getLastName())
+                    .email(request.getEmail())
+                    .phoneNumber(request.getPhoneNumber())
+                    .password(passwordEncoder.encode(request.getPassword()))
+                    .role(Role.ADMIN)
+                    .address(request.getAddress())
+                    .enabled(true)
+                    .accountNonExpired(true)
+                    .accountNonLocked(true)
+                    .credentialsNonExpired(true)
+                    .build();
+
+            userRepository.save(user);
         }
     }
 

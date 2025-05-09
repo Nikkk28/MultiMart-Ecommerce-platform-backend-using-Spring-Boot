@@ -29,6 +29,7 @@ public class OrderService {
     private final ProductRepository productRepository;
     private final CartRepository cartRepository;
     private final CartService cartService;
+
     private final double TAX_RATE = 0.18; // 18% tax
 
     public Page<OrderSummaryDto> getUserOrders(String username, Order.OrderStatus status, Pageable pageable) {
@@ -181,7 +182,7 @@ public class OrderService {
         orderRepository.save(order);
     }
 
-    private OrderSummaryDto mapToOrderSummaryDto(Order order) {
+    OrderSummaryDto mapToOrderSummaryDto(Order order) {
         List<OrderItemDto> orderItemDtos = order.getItems().stream()
                 .map(this::mapToOrderItemDto)
                 .collect(Collectors.toList());

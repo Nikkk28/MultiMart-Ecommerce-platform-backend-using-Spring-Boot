@@ -22,6 +22,7 @@ public class OrderSummaryDto {
     private Double tax;
     private Double shipping;
     private Double discount;
+    private Integer itemCount;
     private Double total;
     private LocalDateTime createdAt;
 }

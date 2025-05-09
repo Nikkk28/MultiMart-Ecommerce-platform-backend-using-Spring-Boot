@@ -30,6 +30,14 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ApiResponse> handleIllegalStateException(IllegalStateException ex) {
+        return new ResponseEntity<>(
+                new ApiResponse(false, ex.getMessage()),
+                HttpStatus.FORBIDDEN
+        );
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Object> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();

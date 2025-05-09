@@ -1,7 +1,10 @@
 package com.multimart.controller;
 
+import com.multimart.dto.admin.AdminDashboardDto;
 import com.multimart.dto.category.CategoryDto;
 import com.multimart.dto.common.ApiResponse;
+import com.multimart.dto.user.UserDto;
+import com.multimart.dto.user.UserStatusUpdateRequest;
 import com.multimart.dto.vendor.VendorDto;
 import com.multimart.model.Vendor;
 import com.multimart.service.AdminService;
@@ -22,6 +25,11 @@ import java.util.List;
 public class AdminController {
 
     private final AdminService adminService;
+
+    @GetMapping("/dashboard")
+    public ResponseEntity<AdminDashboardDto> getAdminDashboard() {
+        return ResponseEntity.ok(adminService.getAdminDashboard());
+    }
 
     @GetMapping("/vendors")
     public ResponseEntity<Page<VendorDto>> getAllVendors(
@@ -79,5 +87,29 @@ public class AdminController {
     public ResponseEntity<ApiResponse> deleteCategory(@PathVariable Long id) {
         adminService.deleteCategory(id);
         return ResponseEntity.ok(new ApiResponse(true, "Category deleted successfully"));
+    }
+
+    // User Management Endpoints
+
+    @GetMapping("/users")
+    public ResponseEntity<Page<UserDto>> getAllUsers(
+            @RequestParam(required = false) String role,
+            @PageableDefault(size = 10) Pageable pageable) {
+
+        return ResponseEntity.ok(adminService.getAllUsers(role, pageable));
+    }
+
+    @GetMapping("/users/{userId}")
+    public ResponseEntity<UserDto> getUserById(@PathVariable Long userId) {
+        return ResponseEntity.ok(adminService.getUserById(userId));
+    }
+
+    @PutMapping("/users/{userId}/status")
+    public ResponseEntity<ApiResponse> updateUserStatus(
+            @PathVariable Long userId,
+            @RequestBody UserStatusUpdateRequest request) {
+
+        adminService.updateUserStatus(userId, request.getStatus());
+        return ResponseEntity.ok(new ApiResponse(true, "User status updated successfully"));
     }
 }
