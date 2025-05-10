@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -25,4 +26,25 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Query("SELECT COUNT(o) FROM Order o WHERE o.createdAt >= :startDate AND o.createdAt <= :endDate")
     int countByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
+
+    @Query(value = """
+        SELECT COALESCE(SUM(o.total), 0)
+        FROM orders o
+        WHERE o.vendor_id = :vendorId
+          AND o.status = 'DELIVERED'
+        """, nativeQuery = true)
+    Double getTotalRevenue(@Param("vendorId") Long vendorId);
+
+
+    @Query(value = """
+        SELECT COALESCE(SUM(o.total), 0)
+        FROM orders o
+        WHERE o.vendor_id = :vendorId
+          AND o.status = 'DELIVERED'
+          AND EXTRACT(YEAR FROM o.created_at) = :year
+          AND EXTRACT(MONTH FROM o.created_at) = :month
+        """, nativeQuery = true)
+    Double getMonthlyRevenue(@Param("vendorId") Long vendorId,
+                             @Param("year") int year,
+                             @Param("month") int month);
 }

@@ -42,9 +42,9 @@ public class RegisterRequest {
     @NotBlank(message = "Phone number is required")
     @Pattern(regexp = "^\\+?[0-9\\s-]{10,15}$", message = "Phone number should be valid")
     private String phoneNumber;
-    private Address address;
+    private AddressDto address;
     private Role role;
-    private Address storeAddress;
+    private AddressDto storeAddress;
     private String storeName;
     private String storeDescription;
     private String logo;

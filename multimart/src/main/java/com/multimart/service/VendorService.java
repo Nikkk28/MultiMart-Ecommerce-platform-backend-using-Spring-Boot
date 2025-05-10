@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -385,19 +386,16 @@ public class VendorService {
     }
 
     private double calculateTotalRevenue(Vendor vendor) {
-        // In a real implementation, this would calculate the total revenue from all completed orders
-        // For now, we'll return a placeholder value
-        return 45231.0;
+        return orderRepository.getTotalRevenue(vendor.getId());
+
     }
 
     private double calculateMonthlyRevenue(Vendor vendor, YearMonth yearMonth) {
-        // In a real implementation, this would calculate the revenue for the specified month
-        // For now, we'll return placeholder values
-        if (yearMonth.equals(YearMonth.now())) {
-            return 12234.0;
-        } else {
-            return 10997.0;
-        }
+        return orderRepository.getMonthlyRevenue(
+                vendor.getId(),
+                yearMonth.getYear(),
+                yearMonth.getMonthValue()
+        );
     }
 
     private Address mapToAddress(AddressDto addressDto) {

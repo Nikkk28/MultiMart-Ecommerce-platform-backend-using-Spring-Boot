@@ -57,6 +57,10 @@ public class Order {
     })
     private Address billingAddress;
     private String paymentMethod;
+    @ManyToOne
+    @JoinColumn(name = "vendor_id", nullable = false)
+    private Vendor vendor;
+
 
     @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus = PaymentStatus.PENDING;

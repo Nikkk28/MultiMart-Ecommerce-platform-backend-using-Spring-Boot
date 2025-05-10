@@ -41,7 +41,7 @@ public class Vendor {
     private String rejectionReason;
 
     private Double rating = 0.0;
-
+@Column(nullable = false)
     private Integer productCount = 0;
 
     private String specialty;
@@ -49,6 +49,7 @@ public class Vendor {
     private LocalDateTime joinedDate = LocalDateTime.now();
 
     private String contactEmail;
+//    private Long
 
     private String contactPhone;
 
