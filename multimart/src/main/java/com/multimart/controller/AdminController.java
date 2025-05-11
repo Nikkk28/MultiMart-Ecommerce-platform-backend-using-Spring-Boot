@@ -6,6 +6,7 @@ import com.multimart.dto.common.ApiResponse;
 import com.multimart.dto.user.UserDto;
 import com.multimart.dto.user.UserStatusUpdateRequest;
 import com.multimart.dto.vendor.VendorDto;
+import com.multimart.dto.vendor.VendorRejectionRequest;
 import com.multimart.model.Vendor;
 import com.multimart.service.AdminService;
 import lombok.RequiredArgsConstructor;
@@ -53,9 +54,9 @@ public class AdminController {
     @PostMapping("/vendors/{vendorId}/reject")
     public ResponseEntity<ApiResponse> rejectVendor(
             @PathVariable Long vendorId,
-            @RequestParam String reason) {
+            @RequestBody VendorRejectionRequest request) {
 
-        adminService.rejectVendor(vendorId, reason);
+        adminService.rejectVendor(vendorId, request.getReason());
         return ResponseEntity.ok(new ApiResponse(true, "Vendor rejected successfully"));
     }
 

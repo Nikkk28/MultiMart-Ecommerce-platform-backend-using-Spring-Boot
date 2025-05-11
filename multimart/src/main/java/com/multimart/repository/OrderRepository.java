@@ -47,4 +47,16 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     Double getMonthlyRevenue(@Param("vendorId") Long vendorId,
                              @Param("year") int year,
                              @Param("month") int month);
+    @Query("SELECT COUNT(o) FROM Order o")
+    int countAll();
+
+    @Query("SELECT COUNT(o) FROM Order o WHERE MONTH(o.createdAt) = :month AND YEAR(o.createdAt) = :year")
+    int countByCreatedAtMonth(@Param("month") int month, @Param("year") int year);
+
+    @Query("SELECT SUM(o.total) FROM Order o WHERE o.status = 'DELIVERED'")
+    Double getTotalRevenue();
+
+    @Query("SELECT SUM(o.total) FROM Order o WHERE o.status = 'DELIVERED' AND MONTH(o.createdAt) = :month AND YEAR(o.createdAt) = :year")
+    Double getMonthlyRevenue(@Param("month") int month, @Param("year") int year);
+
 }

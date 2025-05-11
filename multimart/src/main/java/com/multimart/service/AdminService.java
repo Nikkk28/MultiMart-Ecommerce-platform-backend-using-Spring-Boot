@@ -18,9 +18,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,91 +35,26 @@ public class AdminService {
     private final OrderRepository orderRepository;
 
     public AdminDashboardDto getAdminDashboard() {
-        // Get user counts
-        int userCount = (int) userRepository.count();
-        int newUsersThisMonth = countUsersCreatedInMonth(YearMonth.now());
-
-        // Get vendor counts
-        int vendorCount = (int) vendorRepository.count();
-        int pendingVendorCount = countVendorsByStatus(Vendor.ApprovalStatus.PENDING);
-
-        // Get product counts
-        int productCount = (int) productRepository.count();
-        int newProductsThisMonth = countProductsCreatedInMonth(YearMonth.now());
-
-        // Get order counts
-        int orderCount = (int) orderRepository.count();
-        int newOrdersThisMonth = countOrdersCreatedInMonth(YearMonth.now());
-
-        // Get revenue
-        double totalRevenue = calculateTotalRevenue();
-        double monthlyRevenue = calculateMonthlyRevenue(YearMonth.now());
-
-        // Get category count
-        int categoryCount = (int) categoryRepository.count();
-
-        // Get pending vendors
-        List<VendorSummaryDto> pendingVendors = getPendingVendors();
+        YearMonth now = YearMonth.now();
+        int month = now.getMonthValue();
+        int year = now.getYear();
 
         return AdminDashboardDto.builder()
-                .userCount(userCount)
-                .newUsersThisMonth(newUsersThisMonth)
-                .vendorCount(vendorCount)
-                .pendingVendorCount(pendingVendorCount)
-                .productCount(productCount)
-                .newProductsThisMonth(newProductsThisMonth)
-                .orderCount(orderCount)
-                .newOrdersThisMonth(newOrdersThisMonth)
-                .totalRevenue(totalRevenue)
-                .monthlyRevenue(monthlyRevenue)
-                .categoryCount(categoryCount)
-                .pendingVendors(pendingVendors)
+                .userCount(userRepository.countAll())
+                .newUsersThisMonth(userRepository.countByCreatedAtMonth(month, year))
+                .vendorCount(userRepository.countByRole(Role.VENDOR))
+                .pendingVendorCount(vendorRepository.countByApprovalStatus(Vendor.ApprovalStatus.PENDING))
+                .productCount(productRepository.countAll())
+                .newProductsThisMonth(productRepository.countByCreatedAtMonth(month, year))
+                .orderCount(orderRepository.countAll())
+                .newOrdersThisMonth(orderRepository.countByCreatedAtMonth(month, year))
+                .totalRevenue(Optional.ofNullable(orderRepository.getTotalRevenue()).orElse(0.0))
+                .monthlyRevenue(Optional.ofNullable(orderRepository.getMonthlyRevenue(month, year)).orElse(0.0))
+                .categoryCount(categoryRepository.countAll())
+                .pendingVendors(vendorRepository.findByApprovalStatus(Vendor.ApprovalStatus.PENDING).stream()
+                        .map(this::mapToVendorSummaryDto)
+                        .collect(Collectors.toList()))
                 .build();
-    }
-
-    private int countUsersCreatedInMonth(YearMonth yearMonth) {
-        // In a real implementation, this would query the database for users created in the specified month
-        // For now, we'll return a placeholder value
-        return 86;
-    }
-
-    private int countVendorsByStatus(Vendor.ApprovalStatus status) {
-        // In a real implementation, this would query the database for vendors with the specified status
-        // For now, we'll return a placeholder value
-        return status == Vendor.ApprovalStatus.PENDING ? 2 : 0;
-    }
-
-    private int countProductsCreatedInMonth(YearMonth yearMonth) {
-        // In a real implementation, this would query the database for products created in the specified month
-        // For now, we'll return a placeholder value
-        return 350;
-    }
-
-    private int countOrdersCreatedInMonth(YearMonth yearMonth) {
-        // In a real implementation, this would query the database for orders created in the specified month
-        // For now, we'll return a placeholder value
-        return 42;
-    }
-
-    private double calculateTotalRevenue() {
-        // In a real implementation, this would calculate the total revenue from all completed orders
-        // For now, we'll return a placeholder value
-        return 1245678.0;
-    }
-
-    private double calculateMonthlyRevenue(YearMonth yearMonth) {
-        // In a real implementation, this would calculate the revenue for the specified month
-        // For now, we'll return a placeholder value
-        return 124567.0;
-    }
-
-    private List<VendorSummaryDto> getPendingVendors() {
-        // In a real implementation, this would query the database for pending vendors
-        // For now, we'll return a placeholder list
-        return vendorRepository.findAll().stream()
-                .filter(vendor -> vendor.getApprovalStatus() == Vendor.ApprovalStatus.PENDING)
-                .map(this::mapToVendorSummaryDto)
-                .collect(Collectors.toList());
     }
 
     private VendorSummaryDto mapToVendorSummaryDto(Vendor vendor) {
@@ -135,13 +70,9 @@ public class AdminService {
     }
 
     public Page<VendorDto> getAllVendors(Vendor.ApprovalStatus status, Pageable pageable) {
-        Page<Vendor> vendors;
-
-        if (status != null) {
-            vendors = vendorRepository.findAll(pageable); // In a real implementation, filter by status
-        } else {
-            vendors = vendorRepository.findAll(pageable);
-        }
+        Page<Vendor> vendors = (status != null)
+                ? vendorRepository.findByApprovalStatus(status, pageable)
+                : vendorRepository.findAll(pageable);
 
         return vendors.map(this::mapToVendorDto);
     }
@@ -157,8 +88,8 @@ public class AdminService {
     public void approveVendor(Long vendorId) {
         Vendor vendor = vendorRepository.findById(vendorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Vendor not found"));
-
         vendor.setApprovalStatus(Vendor.ApprovalStatus.APPROVED);
+        vendor.setProductCount(0);
         vendorRepository.save(vendor);
     }
 
@@ -166,13 +97,11 @@ public class AdminService {
     public void rejectVendor(Long vendorId, String reason) {
         Vendor vendor = vendorRepository.findById(vendorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Vendor not found"));
-
         vendor.setApprovalStatus(Vendor.ApprovalStatus.REJECTED);
         vendor.setRejectionReason(reason);
+        vendor.setProductCount(0);
         vendorRepository.save(vendor);
     }
-
-    // Category Management Methods
 
     public List<CategoryDto> getAllCategories() {
         return categoryRepository.findAll().stream()
@@ -183,16 +112,14 @@ public class AdminService {
     public CategoryDto getCategoryById(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
-
         return mapToCategoryDto(category);
     }
 
     @Transactional
     public CategoryDto createCategory(CategoryDto categoryDto) {
-        // Check if slug already exists
-        if (categoryRepository.findBySlug(categoryDto.getSlug()).isPresent()) {
+        categoryRepository.findBySlug(categoryDto.getSlug()).ifPresent(existing -> {
             throw new IllegalArgumentException("Category with slug '" + categoryDto.getSlug() + "' already exists");
-        }
+        });
 
         Category category = Category.builder()
                 .name(categoryDto.getName())
@@ -203,9 +130,7 @@ public class AdminService {
                 .featured(categoryDto.isFeatured())
                 .build();
 
-        Category savedCategory = categoryRepository.save(category);
-
-        return mapToCategoryDto(savedCategory);
+        return mapToCategoryDto(categoryRepository.save(category));
     }
 
     @Transactional
@@ -213,10 +138,9 @@ public class AdminService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
 
-        // Check if slug already exists and belongs to another category
         categoryRepository.findBySlug(categoryDto.getSlug())
-                .ifPresent(existingCategory -> {
-                    if (!existingCategory.getId().equals(id)) {
+                .ifPresent(existing -> {
+                    if (!existing.getId().equals(id)) {
                         throw new IllegalArgumentException("Category with slug '" + categoryDto.getSlug() + "' already exists");
                     }
                 });
@@ -227,9 +151,7 @@ public class AdminService {
         category.setDescription(categoryDto.getDescription());
         category.setFeatured(categoryDto.isFeatured());
 
-        Category updatedCategory = categoryRepository.save(category);
-
-        return mapToCategoryDto(updatedCategory);
+        return mapToCategoryDto(categoryRepository.save(category));
     }
 
     @Transactional
@@ -237,7 +159,6 @@ public class AdminService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
 
-        // Check if category has products
         if (productRepository.findByCategory(category, Pageable.unpaged()).hasContent()) {
             throw new IllegalArgumentException("Cannot delete category with associated products");
         }
@@ -245,17 +166,10 @@ public class AdminService {
         categoryRepository.delete(category);
     }
 
-    // User Management Methods
-
     public Page<UserDto> getAllUsers(String role, Pageable pageable) {
-        Page<User> users;
-
-        if (role != null) {
-            Role roleEnum = Role.valueOf(role.toUpperCase());
-            users = userRepository.findAll(pageable); // In a real implementation, filter by role
-        } else {
-            users = userRepository.findAll(pageable);
-        }
+        Page<User> users = (role != null)
+                ? userRepository.findByRole(Role.valueOf(role.toUpperCase()), pageable)
+                : userRepository.findAll(pageable);
 
         return users.map(this::mapToUserDto);
     }
@@ -263,7 +177,6 @@ public class AdminService {
     public UserDto getUserById(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
         return mapToUserDto(user);
     }
 
@@ -272,20 +185,19 @@ public class AdminService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        // Update user status based on the requested status
         switch (status) {
-            case ACTIVE:
+            case ACTIVE -> {
                 user.setEnabled(true);
                 user.setAccountNonLocked(true);
-                break;
-            case INACTIVE:
+            }
+            case INACTIVE -> {
                 user.setEnabled(false);
                 user.setAccountNonLocked(true);
-                break;
-            case SUSPENDED:
+            }
+            case SUSPENDED -> {
                 user.setEnabled(true);
                 user.setAccountNonLocked(false);
-                break;
+            }
         }
 
         userRepository.save(user);
@@ -311,9 +223,7 @@ public class AdminService {
     }
 
     private AddressDto mapToAddressDto(Address address) {
-        if (address == null) {
-            return null;
-        }
+        if (address == null) return null;
 
         return AddressDto.builder()
                 .country(address.getCountry())
