@@ -32,6 +32,9 @@ public class Product {
     private Double price;
 
     private Double originalPrice;
+    @Column(nullable = false, unique = true)
+    private String slug;
+
 
     @ElementCollection
     @CollectionTable(name = "product_images", joinColumns = @JoinColumn(name = "product_id"))

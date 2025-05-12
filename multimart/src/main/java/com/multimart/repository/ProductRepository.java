@@ -20,24 +20,24 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Page<Product> findByVendor(Vendor vendor, Pageable pageable);
     Page<Product> findByPriceBetween(Double minPrice, Double maxPrice, Pageable pageable);
     Page<Product> findByInStock(boolean inStock, Pageable pageable);
-    
+
     @Query("SELECT p FROM Product p WHERE " +
-           "(:minPrice IS NULL OR p.price >= :minPrice) AND " +
-           "(:maxPrice IS NULL OR p.price <= :maxPrice) AND " +
-           "(:categoryId IS NULL OR p.category.id = :categoryId) AND " +
-           "(:vendorId IS NULL OR p.vendor.id = :vendorId) AND " +
-           "(:inStock IS NULL OR p.inStock = :inStock) AND " +
-           "(:search IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-           "LOWER(p.description) LIKE LOWER(CONCAT('%', :search, '%')))")
+            "(:minPrice IS NULL OR p.price >= :minPrice) AND " +
+            "(:maxPrice IS NULL OR p.price <= :maxPrice) AND " +
+            "(:categoryId IS NULL OR p.category.id = :categoryId) AND " +
+            "(:vendorId IS NULL OR p.vendor.id = :vendorId) AND " +
+            "(:inStock IS NULL OR p.inStock = :inStock) AND " +
+            "(:search IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%')) OR " +
+            "LOWER(p.description) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%')))")
     Page<Product> findWithFilters(
-            Double minPrice, 
-            Double maxPrice, 
-            Long categoryId, 
-            Long vendorId, 
-            Boolean inStock, 
-            String search, 
+            @Param("minPrice") Double minPrice,
+            @Param("maxPrice") Double maxPrice,
+            @Param("categoryId") Long categoryId,
+            @Param("vendorId") Long vendorId,
+            @Param("inStock") Boolean inStock,
+            @Param("search") String search,
             Pageable pageable);
-    
+
     @Query("SELECT p FROM Product p ORDER BY p.reviewCount DESC")
     List<Product> findTrendingProducts(Pageable pageable);
 
